@@ -100,12 +100,12 @@ def train_dqn():
     target_net.load_state_dict(policy_net.state_dict()) # sao chép trọng số từ policy
     target_net.eval() #không cập nhật trọng số khi huấn luyện
     
-    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE) #hàm tối ưu việc tính graditent
+    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE) #hàm tối ưu việc tính gradient
     memory = ReplayBuffer(MEMORY_CAPACITY)
     
     epsilon = EPSILON_START
     episode_rewards = []
-    steps_done = 0
+    # steps_done = 0
     losses = []
     
     for episode in range(EPISODES):
@@ -135,7 +135,7 @@ def train_dqn():
             memory.push(norm_state, action, reward, norm_next_state, done) #thêm vào replay memory
             
             state = next_state
-            steps_done += 1
+            # steps_done += 1
             
             # Train if enough samples in memory
             if len(memory) >= BATCH_SIZE:
@@ -183,34 +183,6 @@ def train_dqn():
                   f"Epsilon: {epsilon:.3f} | Steps: {step_count+1:3d}")
     
     # #Plot training results
-    # plt.figure(figsize=(12, 6))
-    # plt.plot(episode_rewards)
-    # plt.xlabel('Episode')
-    # plt.ylabel('Total Reward')
-    # plt.title('DQN Training Progress on MountainCar')
-    
-    # # Add moving average
-    # window_size = 50
-    # moving_avg = np.convolve(episode_rewards, np.ones(window_size)/window_size, mode='valid')
-    # plt.plot(np.arange(window_size-1, len(episode_rewards)), moving_avg, 'r-', linewidth=2)
-    
-    # plt.grid()
-    # plt.show()
-    
-    # # Vẽ loss
-    # plt.subplot(2, 1, 2)  # Tạo subplot thứ hai (2 hàng, 1 cột, vị trí 2)
-    # plt.plot(losses, label='Loss', color='b')
-    # plt.xlabel('Training Step')
-    # plt.ylabel('Loss')
-    # plt.title('Training Loss')
-    # moving_avg_loss = np.convolve(losses, np.ones(window_size)/window_size, mode='valid')
-    # plt.plot(np.arange(window_size-1, len(losses)), moving_avg_loss, 'r-', linewidth=2, label='Moving Avg (50)')
-    # plt.legend()
-    # plt.grid()
-    
-    # plt.tight_layout()  # Điều chỉnh khoảng cách giữa các subplot
-    # plt.show()
-
     plt.figure(figsize=(12, 6))
 
     # Subplot 1: Reward
@@ -240,41 +212,6 @@ def train_dqn():
     plt.show()
     return policy_net
 
-#Evaluation Function 
-def evaluate_model(model, num_episodes=10, render=False):
-    success_count = 0
-    total_steps = 0
-    
-    for episode in range(num_episodes):
-        state = reset()
-        done = False
-        episode_steps = 0
-        
-        for step_count in range(MAX_STEPS):
-            norm_state = normalize_state(state)
-            state_tensor = torch.FloatTensor(norm_state).unsqueeze(0)
-            
-            with torch.no_grad():
-                action = model(state_tensor).argmax().item()
-            
-            state, _, done = step(state, action)
-            episode_steps += 1
-            
-            if done:
-                success_count += 1
-                total_steps += episode_steps
-                break
-        
-        print(f"Test Episode {episode}: {'Success' if done else 'Failed'} in {episode_steps} steps")
-    
-    success_rate = success_count / num_episodes
-    avg_steps = total_steps / success_count if success_count > 0 else MAX_STEPS
-    
-    print(f"\nEvaluation Results:")
-    print(f"Success Rate: {success_rate:.1%}")
-    print(f"Average Steps (when successful): {avg_steps:.1f}")
-    
-    return success_rate, avg_steps
 
 #Main Program 
 if __name__ == "__main__":
